@@ -1,0 +1,82 @@
+<html>
+<head>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<title>Fetch Facebook Friends List By Javascript</title>
+</head>
+<body>
+<h1 style="text-align:center">Fetch Facebook Friends List By Javascript</h1>
+
+<div id="fb-root"></div>
+<script type="text/javascript">
+	  window.fbAsyncInit = function() {
+                FB.init({ 
+		    appId: '246823212018293', 
+                    status: true, 
+                    cookie: true,
+                    xfbml: true,
+                    oauth: true});
+				
+		function updateButton(response) {
+		  if (response.authResponse) {
+		  //user is already logged in and connected
+		  FB.api('/me', function(info) {
+			  login(response, info);
+		  });
+		} else {
+		  FB.login(function(response) {
+			  if (response.authResponse) {
+			    FB.api('/me', function(info) {
+				    login(response, info);
+			    });	   
+			  } else {
+			    //user cancelled login or did not grant authorization
+				  
+			  }
+		  }, {scope:'email,user_birthday,status_update,publish_stream,user_about_me,manage_friendlists'});
+		}
+            }
+                FB.getLoginStatus(updateButton);
+                FB.Event.subscribe('auth.statusChange', updateButton);	
+	};
+			
+	
+            (function() {
+                var e = document.createElement('script'); e.async = true;
+                e.src = document.location.protocol 
+                    + '//connect.facebook.net/en_US/all.js';
+                document.getElementById('fb-root').appendChild(e);
+            }());
+            
+            
+            function login(response, info){
+                if (response.authResponse) {
+                    console.log(response);
+			var token=response.authResponse.accessToken;
+			var userid=response.authResponse.userID;
+			var provider='facebook';
+			var fb_data = '<div align="center"><table border="1" cellpadding="5"><tr><td>User Id</td><td>Name</td><td>Photo</td></tr>';
+			$.getJSON('https://graph.facebook.com/'+userid+'/friends?fields=name&access_token='+token, function(result){
+			if(result.data.length > 0){
+			  for(var i=0;i<result.data.length;i++)
+			  {
+			    var userid = result.data[i].id; // user id
+			    var name= result.data[i].name; // facebook name
+			    var image='https://graph.facebook.com/'+ result.data[i].id + '/picture';
+			    fb_data += '<tr><td>'+userid+'</td><td>'+name+'</td><td><img src="'+image+'"></td></tr>';
+			  } 
+			} else {
+			    fb_data += '<tr><td align="center">No record found</td></tr>';
+			}
+			fb_data += '</table></div>';
+			$('#friends').html(fb_data);
+			console.log(result);
+		  });
+		  }
+            }        
+
+</script>
+
+<div id="friends"></div> 
+
+</body>
+</html>
